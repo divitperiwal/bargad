@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: bargad
+      POSTGRES_PASSWORD: bargad
+      POSTGRES_DB: bargad
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bargad -d bargad"]
+      interval: 5s
+      retries: 10
+
+  # Pure cache: no persistence, every key has a TTL (ADR 0003).
+  valkey:
+    image: valkey/valkey:9
+    command: ["valkey-server", "--save", "", "--appendonly", "no", "--maxmemory", "256mb", "--maxmemory-policy", "volatile-lru"]
+    ports:
+      - "${VALKEY_PORT:-6379}:6379"
+
+  # sqlc's Postgres parser needs cgo, so it runs here instead of through go run.
+  sqlc:
+    image: sqlc/sqlc:1.31.1
+    profiles: [tools]
+    working_dir: /src/apps/engine
+    volumes:
+      - .:/src
+
+volumes:
+  pgdata:

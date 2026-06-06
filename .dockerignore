@@ -1,0 +1,13 @@
+.git
+**/node_modules
+**/.next
+**/.turbo
+**/.expo
+**/bin
+**/*.exe
+.env
+.env.*
+!.env.example
+md
+docs
+
