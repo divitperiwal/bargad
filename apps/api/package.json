@@ -1,0 +1,46 @@
+{
+  "name": "api",
+  "private": true,
+  "type": "module",
+  "imports": {
+    "#app": "./src/app.ts",
+    "#constant": "./src/constant.ts",
+    "#jobs/*": "./src/jobs/*.ts",
+    "#database/schema": "./src/database/schema/index.ts",
+    "#config/*": "./src/config/*.ts",
+    "#database/*": "./src/database/*.ts",
+    "#integrations/*": "./src/integrations/*.ts",
+    "#middlewares/*": "./src/middlewares/*.ts",
+    "#modules/*": "./src/modules/*.ts",
+    "#types/*": "./src/types/*.ts",
+    "#utils/*": "./src/utils/*.ts",
+    "#test/*": "./test/*.ts"
+  },
+  "scripts": {
+    "dev": "bun --watch src/server.ts | pino-pretty",
+    "db:pull": "bun scripts/pull.ts",
+    "start": "bun src/server.ts",
+    "test": "bun run test:unit && bun run test:integration",
+    "test:unit": "LOG_LEVEL=silent bun test --env-file=../../.env ./test/unit",
+    "test:integration": "LOG_LEVEL=silent bun test --env-file=../../.env --preload ./test/integration/setup.ts ./test/integration",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@bargad/shared": "workspace:*",
+    "@hono/zod-validator": "^0.9.1",
+    "@simplewebauthn/server": "^14.1.0",
+    "drizzle-orm": "^0.45.4",
+    "hono": "^4.13.14",
+    "libsodium-wrappers": "^0.8.4",
+    "pino": "^9.14.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.4",
+    "@types/libsodium-wrappers": "^0.7.14",
+    "drizzle-kit": "^0.31.11",
+    "pino-pretty": "^13.2.0",
+    "postgres": "^3.4.9",
+    "typescript": "^7.0.2"
+  }
+}
