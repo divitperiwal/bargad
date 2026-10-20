@@ -5,12 +5,14 @@ import { userRoutes } from '#modules/accounts/user/user.route';
 import { feedRoutes } from '#modules/core/feed/feed.route';
 import { familyRoutes } from '#modules/families/family/family.route';
 import { inviteRoutes } from '#modules/families/invite/invite.route';
+import { brokerRoutes } from '#modules/trading/broker/broker.route';
 import { sendSuccess } from './utils/http/response.util';
 
 export const routes = new Hono()
   .get('/health', (c) => sendSuccess(c, { status: 'ok' }))
   .route('/auth', authRoutes)
   .route('/passkeys', passkeyRoutes)
+  .route('/broker-accounts', brokerRoutes)
   .route('/families', familyRoutes)
   .route('/invites', inviteRoutes)
   .route('/feed', feedRoutes)
