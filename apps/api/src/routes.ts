@@ -6,6 +6,7 @@ import { feedRoutes } from '#modules/core/feed/feed.route';
 import { familyRoutes } from '#modules/families/family/family.route';
 import { inviteRoutes } from '#modules/families/invite/invite.route';
 import { ledgerRoutes } from '#modules/household/ledger/ledger.route';
+import { overviewRoutes } from '#modules/household/overview/overview.route';
 import { brokerRoutes } from '#modules/trading/broker/broker.route';
 import { sendSuccess } from './utils/http/response.util';
 
@@ -17,5 +18,6 @@ export const routes = new Hono()
   .route('/families', familyRoutes)
   .route('/invites', inviteRoutes)
   .route('/feed', feedRoutes)
+  .route('/household', overviewRoutes)
   .route('/ledger-entries', ledgerRoutes)
   .route('/users', userRoutes);
