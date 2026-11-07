@@ -7,17 +7,21 @@ import { familyRoutes } from '#modules/families/family/family.route';
 import { inviteRoutes } from '#modules/families/invite/invite.route';
 import { ledgerRoutes } from '#modules/household/ledger/ledger.route';
 import { overviewRoutes } from '#modules/household/overview/overview.route';
+import { basketRoutes } from '#modules/trading/basket/basket.route';
 import { brokerRoutes } from '#modules/trading/broker/broker.route';
+import { instrumentRoutes } from '#modules/trading/instrument/instrument.route';
 import { sendSuccess } from './utils/http/response.util';
 
 export const routes = new Hono()
   .get('/health', (c) => sendSuccess(c, { status: 'ok' }))
   .route('/auth', authRoutes)
   .route('/passkeys', passkeyRoutes)
+  .route('/baskets', basketRoutes)
   .route('/broker-accounts', brokerRoutes)
   .route('/families', familyRoutes)
   .route('/invites', inviteRoutes)
   .route('/feed', feedRoutes)
   .route('/household', overviewRoutes)
+  .route('/instruments', instrumentRoutes)
   .route('/ledger-entries', ledgerRoutes)
   .route('/users', userRoutes);
