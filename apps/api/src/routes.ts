@@ -9,6 +9,7 @@ import { ledgerRoutes } from '#modules/household/ledger/ledger.route';
 import { overviewRoutes } from '#modules/household/overview/overview.route';
 import { basketRoutes } from '#modules/trading/basket/basket.route';
 import { brokerRoutes } from '#modules/trading/broker/broker.route';
+import { grantRoutes } from '#modules/trading/grant/grant.route';
 import { instrumentRoutes } from '#modules/trading/instrument/instrument.route';
 import { sendSuccess } from './utils/http/response.util';
 
@@ -21,6 +22,7 @@ export const routes = new Hono()
   .route('/families', familyRoutes)
   .route('/invites', inviteRoutes)
   .route('/feed', feedRoutes)
+  .route('/grants', grantRoutes)
   .route('/household', overviewRoutes)
   .route('/instruments', instrumentRoutes)
   .route('/ledger-entries', ledgerRoutes)
