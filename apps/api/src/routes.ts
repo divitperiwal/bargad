@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { authRoutes } from '#modules/accounts/auth/auth.route';
 import { passkeyRoutes } from '#modules/accounts/passkey/passkey.route';
 import { userRoutes } from '#modules/accounts/user/user.route';
+import { adminRoutes } from '#modules/core/admin/admin.route';
 import { feedRoutes } from '#modules/core/feed/feed.route';
 import { familyRoutes } from '#modules/families/family/family.route';
 import { inviteRoutes } from '#modules/families/invite/invite.route';
@@ -15,6 +16,7 @@ import { sendSuccess } from './utils/http/response.util';
 
 export const routes = new Hono()
   .get('/health', (c) => sendSuccess(c, { status: 'ok' }))
+  .route('/admin', adminRoutes)
   .route('/auth', authRoutes)
   .route('/passkeys', passkeyRoutes)
   .route('/baskets', basketRoutes)
