@@ -31,9 +31,19 @@ var (
 	seedINFY    = uuid.MustParse("5eed0000-0000-0000-0000-0000000000e6")
 )
 
+var testNow = func() time.Time { return time.Date(2026, 11, 18, 10, 0, 0, 0, market.IST) } // a Wednesday
+
 // setup needs a migrated, seeded database: ENGINE_TEST_DATABASE_URL=postgres://… go test ./internal/execution
 // It creates a one-item self basket (buy 1 INFY) and an executor whose clock is 10:00 IST on a trading day.
 func setup(t *testing.T) (*Executor, *pgxpool.Pool, jobs.ExecuteBasket, uuid.UUID) {
+	t.Helper()
+	e, pool, _ := newExecutor(t, fake.New(testNow))
+	p, itemID := selfBasket(t, pool)
+	return e, pool, p, itemID
+}
+
+// newExecutor wires an executor to b, behind the same breaker the engine uses.
+func newExecutor(t *testing.T, b broker.Broker) (*Executor, *pgxpool.Pool, *session.Manager) {
 	t.Helper()
 	url := os.Getenv("ENGINE_TEST_DATABASE_URL")
 	if url == "" {
@@ -41,7 +51,7 @@ func setup(t *testing.T) (*Executor, *pgxpool.Pool, jobs.ExecuteBasket, uuid.UUI
 	}
 	ctx := context.Background()
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
-	now := func() time.Time { return time.Date(2026, 11, 18, 10, 0, 0, 0, market.IST) } // a Wednesday
+	now := testNow
 
 	pool, err := postgres.Connect(ctx, url, 10)
 	if err != nil {
@@ -54,22 +64,35 @@ func setup(t *testing.T) (*Executor, *pgxpool.Pool, jobs.ExecuteBasket, uuid.UUI
 	if err := cal.Refresh(ctx); err != nil {
 		t.Fatal(err)
 	}
-	brokers := broker.NewRegistry(guard.Protect(fake.New(now), 1000, log))
+	brokers := broker.NewRegistry(guard.Protect(b, 1000, log))
+	sessions := session.NewManager(q, brokers, nil, now, log)
 	e := New(Deps{
-		Pool: pool, Sessions: session.NewManager(q, brokers, nil, now, log), Calendar: cal,
+		Pool: pool, Sessions: sessions, Calendar: cal,
 		Kills: guard.NewKillSwitches(q), Book: pricefeed.NewBook(), MaxPriceAge: 30 * time.Second,
 		Now: now, Log: log,
 	})
+	return e, pool, sessions
+}
 
-	basketID, itemID := uuid.New(), uuid.New()
+// addBasket queues a one-item basket (1 INFY) for owner on account: a self
+// basket when grantID is nil, otherwise a grant basket the head created.
+func addBasket(t *testing.T, pool *pgxpool.Pool, owner uuid.UUID, grantID *uuid.UUID, account uuid.UUID, side string) (basketID, itemID uuid.UUID) {
+	t.Helper()
+	ctx := context.Background()
+	mode, createdBy := "self", owner
+	if grantID != nil {
+		mode, createdBy = "grant", seedRohan
+	}
+	basketID, itemID = uuid.New(), uuid.New()
 	if _, err := pool.Exec(ctx, `
-		INSERT INTO baskets (id, family_id, owner_user_id, created_by, mode, status, trading_day)
-		VALUES ($1, $2, $3, $3, 'self', 'queued', '2026-11-18')`, basketID, seedFamily, seedRohan); err != nil {
+		INSERT INTO baskets (id, family_id, owner_user_id, created_by, mode, grant_id, status, trading_day)
+		VALUES ($1, $2, $3, $4, $5, $6, 'queued', '2026-11-18')`,
+		basketID, seedFamily, owner, createdBy, mode, grantID); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := pool.Exec(ctx, `
 		INSERT INTO basket_items (id, basket_id, owner_user_id, broker_account_id, instrument_id, side, quantity)
-		VALUES ($1, $2, $3, $4, $5, 'buy', 1)`, itemID, basketID, seedRohan, seedAccount, seedINFY); err != nil {
+		VALUES ($1, $2, $3, $4, $5, $6, 1)`, itemID, basketID, owner, account, seedINFY, side); err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() {
@@ -78,7 +101,7 @@ func setup(t *testing.T) (*Executor, *pgxpool.Pool, jobs.ExecuteBasket, uuid.UUI
 		_, _ = pool.Exec(ctx, `DELETE FROM basket_items WHERE id = $1`, itemID)
 		_, _ = pool.Exec(ctx, `DELETE FROM baskets WHERE id = $1`, basketID)
 	})
-	return e, pool, jobs.ExecuteBasket{BasketID: basketID, BrokerAccountID: seedAccount}, itemID
+	return basketID, itemID
 }
 
 func countOrders(t *testing.T, pool *pgxpool.Pool, itemID uuid.UUID) (int, string) {
