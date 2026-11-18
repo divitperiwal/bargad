@@ -131,6 +131,9 @@ SELECT status FROM baskets WHERE id = '00000000-0000-0000-0000-0000000000b1' FOR
 UPDATE grants SET buy_spent_paise = buy_spent_paise + 1515 WHERE id = '00000000-0000-0000-0000-0000000000c1';
 INSERT INTO orders (basket_item_id, broker_account_id, side, quantity, ref_price_paise, band_bps, limit_price_paise, trading_day)
 VALUES ('00000000-0000-0000-0000-0000000000d1', '00000000-0000-0000-0000-0000000000a2', 'buy', 1, 150000, 100, 151500, current_date);
+SELECT pg_temp.must_fail($$INSERT INTO orders (basket_item_id, broker_account_id, side, quantity, ref_price_paise, band_bps, limit_price_paise, trading_day)
+  VALUES ('00000000-0000-0000-0000-0000000000d1', '00000000-0000-0000-0000-0000000000a2', 'buy', 1, 150000, 100, 151500, current_date)$$,
+  'orders_one_per_item');
 INSERT INTO audit_log (subject_user_id, action) VALUES ('00000000-0000-0000-0000-000000000002', 'order.placed');
 RESET ROLE;
 
