@@ -37,7 +37,8 @@ func Protect(b broker.Broker, perSecond float64, log *slog.Logger) *Protected {
 			MaxRequests: 1,
 			Interval:    time.Minute,
 			Timeout:     30 * time.Second,
-			ReadyToTrip: func(c gobreaker.Counts) bool { return c.ConsecutiveFailures >= 5 },
+			// Total, not consecutive: the price feed's quotes would reset a streak of failed orders.
+			ReadyToTrip: func(c gobreaker.Counts) bool { return c.TotalFailures >= 5 },
 			IsSuccessful: func(err error) bool {
 				var rejected *broker.RejectedError
 				return err == nil ||
