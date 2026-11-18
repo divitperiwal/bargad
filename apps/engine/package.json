@@ -1,6 +1,7 @@
 {
   "name": "engine",
   "private": true,
+  "license": "UNLICENSED",
   "scripts": {
     "dev": "go run ./cmd/engine",
     "build": "go build -o bin/engine ./cmd/engine",

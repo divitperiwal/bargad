@@ -1,6 +1,7 @@
 {
   "name": "api",
   "private": true,
+  "license": "UNLICENSED",
   "type": "module",
   "imports": {
     "#app": "./src/app.ts",
